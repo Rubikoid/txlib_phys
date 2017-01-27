@@ -63,17 +63,17 @@ Vector2 operator*(const Vector2 &v1, const float &v2) {
 
 class base {
     public:
-    Vector2 pos, speed;
+    Vector2 pos, oldPos;
 
     base(Vector2 startPos, Vector2 startSpeed) {
         pos = startPos;
-        speed = startSpeed;
+        oldPos = pos - startSpeed;
     }
 
     base() { }
 
     void update() {
-        if(pos.x+speed.x>800 || pos.x+speed.x<0) {
+        /*if(pos.x+speed.x>800 || pos.x+speed.x<0) {
             pos.x+=speed.x;
             speed.x*=-1;
         }
@@ -82,7 +82,7 @@ class base {
             pos.y+=speed.y;
             speed.y*=-1;
         }
-        else pos.y+=speed.y;
+        else pos.y+=speed.y;*/
     }
 
     void drow() {
@@ -105,14 +105,29 @@ class ball : public base {
     ball() : base() {}
 
     void update() {
-        if(800.0-(pos.x+speed.x+radi) < 0 || (pos.x+speed.x-radi) < 0) {
-            speed.x*=-1;
+        Vector2 nextPos = newPos();
+        if(800.0-(nextPos.x+radi) < 0 || (nextPos.x-radi) < 0) {
+            /*Vector2 delta = pos - oldPos;
+            delta.x *= -1;
+            oldPos = pos;
+            pos = pos + delta;*/
+            oldPos = nextPos;
+            return;
         }
-        if(500.0-(pos.y+speed.y+radi) < 0 || (pos.y+speed.y-radi) <=0) {
-            speed.y*=-1;
+        if(500.0-(nextPos.y+radi) < 0 || (nextPos.y-radi) <=0) {
+            Vector2 delta = pos - oldPos;
+            delta.y *= -1;
+            oldPos = pos;
+            pos = pos + delta;
+            return;
         }
-        pos.x+=speed.x;
-        pos.y+=speed.y;
+        oldPos = pos;
+        pos = nextPos;
+    }
+
+    Vector2 newPos() {
+        Vector2 delta = pos - oldPos;
+        return pos + delta;
     }
 
     void ballCheck(ball &bl)
@@ -120,14 +135,13 @@ class ball : public base {
         Vector2 p12 = pos - bl.pos;
         if(p12.sqrLength() < (radi + bl.radi)*(radi + bl.radi))
         {
-            Vector2 tmp = bl.speed;
-            bl.speed = speed;
-            speed = tmp;
             printf("%d;%d\n",id,bl.id);
-            Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize();
+            /*Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize();
             float reflDepth = radi + bl.radi - p21.Length();
-            pos = pos + reflDest.negative() * reflDepth;
-            bl.pos = bl.pos + reflDest * reflDepth;
+            //oldPos = pos;
+            //bl.oldPos = bl.pos;
+            pos = pos + reflDest.negative() * reflDepth * 0.5;
+            bl.pos = bl.pos + reflDest * reflDepth * 0.5;*/
         }
     }
 
