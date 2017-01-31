@@ -15,11 +15,11 @@ int main() {
     Time = TIME;
     T0 = Time;
     begin();
-    boxColor();
-    txRectangle(box.ldPos.x, box.rpPos.y, box.rpPos.x, box.ldPos.y);
     while(!KEY(VK_ESCAPE)) {
         resetCol();
-        //clear();
+        clear();
+        boxColor();
+        txRectangle(box.ldPos.x, box.rpPos.y, box.rpPos.x, box.ldPos.y);
         for(int i =0;i<items.size();i++) {
             items[i].drow();
             items[i].update();
