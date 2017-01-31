@@ -13,6 +13,7 @@ void textOut(int x, int y, char *text);
 int MouseButt();
 int MouseX();
 int MouseY();
+void boxColor();
 
 void init(int x, int y)
 {
@@ -26,6 +27,11 @@ void resetCol()
 {
     txSetFillColour(RGB(50,50,50));
     txSetColor(TX_WHITE, 1);
+}
+
+void boxColor() {
+    txSetFillColour(RGB(50,50,50));
+    txSetColor(TX_WHITE, 3);
 }
 
 void clear(){txClear();}

@@ -61,19 +61,37 @@ Vector2 operator*(const Vector2 &v1, const float &v2) {
     return result;
 }
 
+class Bounds {
+    public:
+    Vector2 ldPos, rpPos;
+
+    Bounds(float x1,float y1, float x2, float y2) {
+        ldPos = Vector2(x1,y1);
+        rpPos = Vector2(x2,y2);
+    }
+    Bounds(){}
+};
+
+float operator*(const Vector2 &v1, const Vector2 &v2) {
+    float result = v1.x*v2.x + v1.y+v2.y;
+    return result;
+}
+
 class base {
     public:
-    Vector2 pos, oldPos;
+    Vector2 pos, speed;
+    Bounds bounds;
 
-    base(Vector2 startPos, Vector2 startSpeed) {
+    base(Vector2 startPos, Vector2 startSpeed, Bounds bnds) {
         pos = startPos;
-        oldPos = pos - startSpeed;
+        speed = startSpeed;
+        bounds = bnds;
     }
 
     base() { }
 
     void update() {
-        /*if(pos.x+speed.x>800 || pos.x+speed.x<0) {
+        if(pos.x+speed.x>800 || pos.x+speed.x<0) {
             pos.x+=speed.x;
             speed.x*=-1;
         }
@@ -82,7 +100,7 @@ class base {
             pos.y+=speed.y;
             speed.y*=-1;
         }
-        else pos.y+=speed.y;*/
+        else pos.y+=speed.y;
     }
 
     void drow() {
@@ -96,7 +114,7 @@ class ball : public base {
     COLORREF color;
 
     int id;
-    ball(Vector2 startPos, Vector2 startSpeed, double r=0.0, COLORREF colr = RGB(255,255,255), int ID=0) : base(startPos, startSpeed) {
+    ball(Vector2 startPos, Vector2 startSpeed, double r=0.0, COLORREF colr = RGB(255,255,255), int ID=0, Bounds bnds = Bounds(0,0,0,0)) : base(startPos, startSpeed, bnds) {
         radi = r;
         color = colr;
         id = ID;
@@ -105,29 +123,14 @@ class ball : public base {
     ball() : base() {}
 
     void update() {
-        Vector2 nextPos = newPos();
-        if(800.0-(nextPos.x+radi) < 0 || (nextPos.x-radi) < 0) {
-            /*Vector2 delta = pos - oldPos;
-            delta.x *= -1;
-            oldPos = pos;
-            pos = pos + delta;*/
-            oldPos = nextPos;
-            return;
+        if(bounds.rpPos.x - (pos.x+speed.x+radi) < 0 || (pos.x+speed.x-radi) < bounds.ldPos.x) {
+            speed.x*=-1;
         }
-        if(500.0-(nextPos.y+radi) < 0 || (nextPos.y-radi) <=0) {
-            Vector2 delta = pos - oldPos;
-            delta.y *= -1;
-            oldPos = pos;
-            pos = pos + delta;
-            return;
+        if(bounds.ldPos.y -(pos.y+speed.y+radi) < 0 || (pos.y+speed.y-radi) < bounds.rpPos.y) {
+            speed.y*=-1;
         }
-        oldPos = pos;
-        pos = nextPos;
-    }
-
-    Vector2 newPos() {
-        Vector2 delta = pos - oldPos;
-        return pos + delta;
+        pos.x+=speed.x;
+        pos.y+=speed.y;
     }
 
     void ballCheck(ball &bl)
@@ -136,12 +139,14 @@ class ball : public base {
         if(p12.sqrLength() < (radi + bl.radi)*(radi + bl.radi))
         {
             printf("%d;%d\n",id,bl.id);
-            /*Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize();
+            Vector2 oldSpeed = speed, blOldSpeed = bl.speed;
+            speed = oldSpeed * ((radi - bl.radi)/(radi+bl.radi)) + blOldSpeed * ((2*bl.radi)/(radi+bl.radi));
+            bl.speed = oldSpeed * ((2*radi)/(radi+bl.radi)) + blOldSpeed * ((bl.radi - radi)/(radi+bl.radi));
+
+            Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize();
             float reflDepth = radi + bl.radi - p21.Length();
-            //oldPos = pos;
-            //bl.oldPos = bl.pos;
             pos = pos + reflDest.negative() * reflDepth * 0.5;
-            bl.pos = bl.pos + reflDest * reflDepth * 0.5;*/
+            bl.pos = bl.pos + reflDest * reflDepth * 0.5;
         }
     }
 
