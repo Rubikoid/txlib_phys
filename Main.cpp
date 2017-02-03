@@ -29,7 +29,7 @@ int main() {
                 if(i!=j) items[i].ballCheck(items[j]);
             }
         }
-        gsleep(10);
+        gsleep(100);
     }
     end();
     return 0;

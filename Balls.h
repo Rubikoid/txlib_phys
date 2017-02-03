@@ -52,12 +52,22 @@ Vector2 operator+(const Vector2 &v1, const Vector2 &v2) {
     return Vector2(v1.x + v2.x, v1.y + v2.y);
 }
 
+Vector2 operator+=(Vector2 &v1, const Vector2 &v2) {
+    v1 = v1 + v2;
+    return v1;
+}
+
 Vector2 operator-(const Vector2 &v1, const Vector2 &v2) {
     return Vector2(v1.x - v2.x, v1.y - v2.y);
 }
 
 Vector2 operator*(const Vector2 &v1, const float &v2) {
     Vector2 result(v1.x*v2,v1.y*v2);
+    return result;
+}
+
+float operator*(const Vector2 &v1, const Vector2 &v2) {
+    float result = v1.x*v2.x + v1.y+v2.y;
     return result;
 }
 
@@ -69,13 +79,20 @@ class Bounds {
         ldPos = Vector2(x1,y1);
         rpPos = Vector2(x2,y2);
     }
+
+    /*
+        внутри - 0
+        пересекает или больше по x - 2
+        пересекает или больше по y - 4
+    */
+    int inBounds(Vector2 pos, float radi) {
+        int ret = 0;
+        if((pos.x+radi) > rpPos.x || (pos.x-radi) < ldPos.x){ ret = ret | 2; }
+        if((pos.y+radi) > ldPos.y || (pos.y-radi) < rpPos.y){ ret = ret | 4; }
+        return ret;
+    }
     Bounds(){}
 };
-
-float operator*(const Vector2 &v1, const Vector2 &v2) {
-    float result = v1.x*v2.x + v1.y+v2.y;
-    return result;
-}
 
 class base {
     public:
@@ -91,16 +108,10 @@ class base {
     base() { }
 
     void update() {
-        if(pos.x+speed.x>800 || pos.x+speed.x<0) {
-            pos.x+=speed.x;
-            speed.x*=-1;
-        }
-        else pos.x+=speed.x;
-        if(pos.y+pos.y>500 || pos.y+pos.y<0) {
-            pos.y+=speed.y;
-            speed.y*=-1;
-        }
-        else pos.y+=speed.y;
+        int posCheck = bounds.inBounds(pos+speed,1);
+        if(posCheck & 2) speed.x*=-1;
+        if(posCheck & 4) speed.y*=-1;
+        pos += speed;
     }
 
     void drow() {
@@ -123,14 +134,11 @@ class ball : public base {
     ball() : base() {}
 
     void update() {
-        if(bounds.rpPos.x - (pos.x+speed.x+radi) < 0 || (pos.x+speed.x-radi) < bounds.ldPos.x) {
-            speed.x*=-1;
-        }
-        if(bounds.ldPos.y -(pos.y+speed.y+radi) < 0 || (pos.y+speed.y-radi) < bounds.rpPos.y) {
-            speed.y*=-1;
-        }
-        pos.x+=speed.x;
-        pos.y+=speed.y;
+        int posCheck = bounds.inBounds(pos+speed,radi);
+        if(posCheck == 2) speed.x*=-1;
+        if(posCheck == 4){ printf("aa"); speed.y*=-1; }
+        if(posCheck != 0) {printf("x:%d,y:%d\n",posCheck & 2, posCheck & 4);}
+        pos += speed;
     }
 
     void ballCheck(ball &bl)
@@ -140,13 +148,13 @@ class ball : public base {
         {
             printf("%d;%d\n",id,bl.id);
             Vector2 oldSpeed = speed, blOldSpeed = bl.speed;
-            speed = oldSpeed * ((radi - bl.radi)/(radi+bl.radi)) + blOldSpeed * ((2*bl.radi)/(radi+bl.radi));
+            speed = oldSpeed * ((radi - bl.radi)/(radi+bl.radi)) + blOldSpeed * ((2*bl.radi)/(radi+bl.radi)); //новая скорость с импульсом
             bl.speed = oldSpeed * ((2*radi)/(radi+bl.radi)) + blOldSpeed * ((bl.radi - radi)/(radi+bl.radi));
 
             Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize();
             float reflDepth = radi + bl.radi - p21.Length();
-            pos = pos + reflDest.negative() * reflDepth * 0.5;
-            bl.pos = bl.pos + reflDest * reflDepth * 0.5;
+            pos += reflDest.negative() * reflDepth * 0.5; // расталкиваем шарики по их центрам.
+            bl.pos += reflDest * reflDepth * 0.5;
         }
     }
 
