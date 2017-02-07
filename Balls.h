@@ -3,73 +3,17 @@
 
 #include <vector>
 #include <string>
-#include "grap.h"
 #include <stdio.h>
+#include <cmath>
+#include "grap.h"
+#include "Vector.h"
 
 #define TIME		GetTickCount()/100
 #define KEY			GetAsyncKeyState
 #define uint 		unsigned int //govnokode for compare with vector.size()
+#define RADI_MASS   20
 
 using namespace std;
-class Vector2 {
-    public:
-    float x,y;
-    Vector2(void) { }
-
-    Vector2(float X, float Y) {
-        this->x = X;
-        this->y = Y;
-    }
-
-    // Returns the length of the vector
-    float Length() {
-        return sqrt(x * x + y * y);
-    }
-
-    float sqrLength() {
-        return x * x + y * y;
-    }
-
-    // Normalizes the vector
-    Vector2 Normalize() {
-        Vector2 vector;
-        float length = this->Length();
-
-        if(length != 0) {
-            vector.x = x/length;
-            vector.y = y/length;
-        }
-
-        return vector;
-    }
-
-    Vector2 negative() {
-        return Vector2(x*-1,y*-1);
-    }
-};
-
-Vector2 operator+(const Vector2 &v1, const Vector2 &v2) {
-    return Vector2(v1.x + v2.x, v1.y + v2.y);
-}
-
-Vector2 operator+=(Vector2 &v1, const Vector2 &v2) {
-    v1 = v1 + v2;
-    return v1;
-}
-
-Vector2 operator-(const Vector2 &v1, const Vector2 &v2) {
-    return Vector2(v1.x - v2.x, v1.y - v2.y);
-}
-
-Vector2 operator*(const Vector2 &v1, const float &v2) {
-    Vector2 result(v1.x*v2,v1.y*v2);
-    return result;
-}
-
-float operator*(const Vector2 &v1, const Vector2 &v2) {
-    float result = v1.x*v2.x + v1.y+v2.y;
-    return result;
-}
 
 class Bounds {
     public:
@@ -109,8 +53,8 @@ class base {
 
     void update() {
         int posCheck = bounds.inBounds(pos+speed,1);
-        if(posCheck & 2) speed.x*=-1;
-        if(posCheck & 4) speed.y*=-1;
+        if((posCheck & 2) == 2) speed.x*=-1;
+        if((posCheck & 4) == 4) speed.y*=-1;
         pos += speed;
     }
 
@@ -122,50 +66,72 @@ class base {
 class ball : public base {
     public:
     float radi;
+    float mass;
+
+    bool isExist;
     COLORREF color;
 
     int id;
     ball(Vector2 startPos, Vector2 startSpeed, double r=0.0, COLORREF colr = RGB(255,255,255), int ID=0, Bounds bnds = Bounds(0,0,0,0)) : base(startPos, startSpeed, bnds) {
-        radi = r;
         color = colr;
         id = ID;
+        mass = r;
+        radiReCalc();
+        isExist = true;
     }
 
     ball() : base() {}
 
     void update() {
-        int posCheck = bounds.inBounds(pos+speed,radi);
-        if(posCheck == 2) speed.x*=-1;
-        if(posCheck == 4){ printf("aa"); speed.y*=-1; }
-        if(posCheck != 0) {printf("x:%d,y:%d\n",posCheck & 2, posCheck & 4);}
-        pos += speed;
+        if(isExist) {
+            int posCheck = bounds.inBounds(pos+speed,radi);
+            if((posCheck & 2) == 2) speed.x*=-1;
+            if((posCheck & 4) == 4) speed.y*=-1;
+            pos += speed;
+        }
     }
 
-    void ballCheck(ball &bl)
+    int ballCheck(ball &bl)
     {
         Vector2 p12 = pos - bl.pos;
-        if(p12.sqrLength() < (radi + bl.radi)*(radi + bl.radi))
-        {
-            printf("%d;%d\n",id,bl.id);
+        if(p12.sqrLength() < (radi + bl.radi)*(radi + bl.radi) && isExist) {
+            if(mass > bl.mass) {
+                return 1;
+            }
+            else if(mass < bl.mass) {
+                return 2;
+            }
+            //printf("%d;%d\n",id,bl.id);
             Vector2 oldSpeed = speed, blOldSpeed = bl.speed;
-            speed = oldSpeed * ((radi - bl.radi)/(radi+bl.radi)) + blOldSpeed * ((2*bl.radi)/(radi+bl.radi)); //новая скорость с импульсом
-            bl.speed = oldSpeed * ((2*radi)/(radi+bl.radi)) + blOldSpeed * ((bl.radi - radi)/(radi+bl.radi));
-
+            speed = oldSpeed * ((mass - bl.mass)/(mass+bl.mass)) + blOldSpeed * ((2*bl.mass)/(mass+bl.mass)); //новая скорость с импульсом
+            bl.speed = oldSpeed * ((2*mass)/(mass+bl.mass)) + blOldSpeed * ((bl.mass - mass)/(mass+bl.mass));
+            /*
+                v1 = v1old * (m1 - m2)/(m1 + m2) + v2old * (2 * m2)/(m1 + m2)
+                v2 = v1old * (2 * m1)/(m1 + m2) + v2old * (m2 - m1)/(m1+m2)
+            */
             Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize();
             float reflDepth = radi + bl.radi - p21.Length();
             pos += reflDest.negative() * reflDepth * 0.5; // расталкиваем шарики по их центрам.
             bl.pos += reflDest * reflDepth * 0.5;
         }
+        return 0;
     }
 
     void drow() {
-        txSetFillColour(color);
-        txSetColor(color, 1);
-        txCircle(pos.x, pos.y, radi);
-        char a[4];
-        sprintf(a,"%d",id);
-        resetCol();
-        textOut(pos.x,pos.y,a);
+        if(isExist) {
+            txSetFillColour(color);
+            txSetColor(color, 1);
+            txCircle(pos.x, pos.y, radi);
+            //char a[4];
+            //sprintf(a,"%d",id);
+            resetCol();
+            //textOut(pos.x,pos.y,a);
+        }
+    }
+
+    void radiReCalc() {
+        //4*pi*r^3 = m
+        radi = pow((mass / (4*M_PI)), 1.0 / 3.0) * RADI_MASS;
     }
 };
 
