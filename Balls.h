@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <string>
-#include <stdio.h>
 #include <cmath>
-#include "grap.h"
+#include "windows.h"
+#include "SDLgrap.h"
 #include "Vector.h"
 
 #define TIME		GetTickCount()/100
@@ -59,7 +59,7 @@ class base {
     }
 
     void drow() {
-        txSetPixel(pos.x, pos.y, RGB(255,0,0));
+        //txSetPixel(pos.x, pos.y, RGB(255,0,0));
     }
 };
 
@@ -119,9 +119,9 @@ class ball : public base {
 
     void drow() {
         if(isExist) {
-            txSetFillColour(color);
-            txSetColor(color, 1);
-            txCircle(pos.x, pos.y, radi);
+            //txSetFillColour(color);
+            //txSetColor(color, 1);
+            //txCircle(pos.x, pos.y, radi);
             //char a[4];
             //sprintf(a,"%d",id);
             resetCol();
@@ -131,7 +131,7 @@ class ball : public base {
 
     void radiReCalc() {
         //4*pi*r^3 = m
-        radi = pow((mass / (4*M_PI)), 1.0 / 3.0) * RADI_MASS;
+        radi = pow((mass / (4*3.1415926)), 1.0 / 3.0) * RADI_MASS;
     }
 };
 

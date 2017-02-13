@@ -1,5 +1,4 @@
 #include "Balls.h"
-#include "grap.h"
 
 #define WIDTH 1300
 #define HEIGHT 700
@@ -8,12 +7,12 @@ int iRand(int min, int max) {
     return min + rand() % (max-min+1);
 }
 
-int main() {
+int main(int argc, char **argv) {
     //vars
     long Time = 0, T0 = 0;
     vector<ball> items = vector<ball>(0);
     init(WIDTH, HEIGHT);
-    Bounds box = Bounds(40,HEIGHT-40,WIDTH-40,40);
+    /*Bounds box = Bounds(40,HEIGHT-40,WIDTH-40,40);
     for(int i=0;i<100;i++) {
         int radi = 5;
         int startX = iRand(((int)box.ldPos.x)+radi*2,((int)box.rpPos.x)-radi*2), startY = iRand(((int)box.rpPos.y)+radi*2,((int)box.ldPos.y)-radi*2);
@@ -72,6 +71,6 @@ int main() {
         }
         gsleep(10);
     }
-    end();
+    end();*/
     return 0;
 }

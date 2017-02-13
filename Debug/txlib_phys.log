@@ -1,0 +1,5 @@
+﻿  Main.cpp
+e:\dsct\progs\txlib_phys\Balls.h(78): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+e:\dsct\progs\txlib_phys\Balls.h(134): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+  txlib_phys.vcxproj -> E:\Dsct\Progs\txlib_phys\Debug\txlib_phys.exe
+  txlib_phys.vcxproj -> E:\Dsct\Progs\txlib_phys\Debug\txlib_phys.pdb (Full PDB)
