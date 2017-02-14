@@ -1,5 +1,4 @@
 #include "Balls.h"
-#include "grap.h"
 
 #define WIDTH 1300
 #define HEIGHT 700
@@ -8,7 +7,7 @@ int iRand(int min, int max) {
     return min + rand() % (max-min+1);
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     //vars
     long Time = 0, T0 = 0;
     vector<ball> items = vector<ball>(0);
@@ -39,12 +38,12 @@ int main() {
         clear();
         boxColor();
         txRectangle(box.ldPos.x, box.rpPos.y, box.rpPos.x, box.ldPos.y);
-        for(int i =0;i<items.size();i++) {
+        for(uint i =0;i<items.size();i++) {
             items[i].drow();
             items[i].update();
         }
-        for(int i=0; i<items.size();i++) {
-            for(int j=0; j<items.size();j++) {
+        for(uint i=0; i<items.size();i++) {
+            for(uint j=0; j<items.size();j++) {
                 if(i!=j) {
                     int k = items[i].ballCheck(items[j]);
                 }
