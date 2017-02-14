@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <string>
+#include <stdio.h>
 #include <cmath>
-#include "windows.h"
-#include "SDLgrap.h"
+#include "grap.h"
 #include "Vector.h"
 
 #define TIME		GetTickCount()/100
@@ -59,7 +59,7 @@ class base {
     }
 
     void drow() {
-        //txSetPixel(pos.x, pos.y, RGB(255,0,0));
+        txSetPixel(pos.x, pos.y, RGB(255,0,0));
     }
 };
 
@@ -77,39 +77,32 @@ class ball : public base {
         id = ID;
         mass = r;
         radiReCalc();
-        isExist = true;
     }
 
     ball() : base() {}
 
     void update() {
-        if(isExist) {
-            int posCheck = bounds.inBounds(pos+speed,radi);
-            if((posCheck & 2) == 2) speed.x*=-1;
-            if((posCheck & 4) == 4) speed.y*=-1;
-            pos += speed;
-        }
+        int posCheck = bounds.inBounds(pos+speed,radi);
+        if((posCheck & 2) == 2) speed.x*=-1;
+        if((posCheck & 4) == 4) speed.y*=-1;
+        pos += speed;
     }
 
     int ballCheck(ball &bl)
     {
         Vector2 p12 = pos - bl.pos;
-        if(p12.sqrLength() < (radi + bl.radi)*(radi + bl.radi) && isExist) {
-            if(mass > bl.mass) {
-                return 1;
-            }
-            else if(mass < bl.mass) {
-                return 2;
-            }
-            //printf("%d;%d\n",id,bl.id);
-            Vector2 oldSpeed = speed, blOldSpeed = bl.speed;
-            speed = oldSpeed * ((mass - bl.mass)/(mass+bl.mass)) + blOldSpeed * ((2*bl.mass)/(mass+bl.mass)); //новая скорость с импульсом
-            bl.speed = oldSpeed * ((2*mass)/(mass+bl.mass)) + blOldSpeed * ((bl.mass - mass)/(mass+bl.mass));
+        if(p12.sqrLength() < (radi + bl.radi)*(radi + bl.radi)) {
+            //Vector2 oldSpeed = speed, blOldSpeed = bl.speed;
+            //speed = oldSpeed * ((mass - bl.mass)/(mass+bl.mass)) + blOldSpeed * ((2*bl.mass)/(mass+bl.mass)); //новая скорость с импульсом
+            //bl.speed = oldSpeed * ((2*mass)/(mass+bl.mass)) + blOldSpeed * ((bl.mass - mass)/(mass+bl.mass));
             /*
                 v1 = v1old * (m1 - m2)/(m1 + m2) + v2old * (2 * m2)/(m1 + m2)
                 v2 = v1old * (2 * m1)/(m1 + m2) + v2old * (m2 - m1)/(m1+m2)
             */
-            Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize();
+            Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize(), v21 = bl.speed - speed;
+            float f = mass / (mass + bl.mass) * 0.5f;
+            speed += reflDest.negative() * f;
+            bl.speed += reflDest * f;
             float reflDepth = radi + bl.radi - p21.Length();
             pos += reflDest.negative() * reflDepth * 0.5; // расталкиваем шарики по их центрам.
             bl.pos += reflDest * reflDepth * 0.5;
@@ -118,20 +111,19 @@ class ball : public base {
     }
 
     void drow() {
-        if(isExist) {
-            //txSetFillColour(color);
-            //txSetColor(color, 1);
-            //txCircle(pos.x, pos.y, radi);
-            //char a[4];
-            //sprintf(a,"%d",id);
-            resetCol();
-            //textOut(pos.x,pos.y,a);
-        }
+        txSetFillColour(color);
+        txSetColor(color, 1);
+        txCircle(pos.x, pos.y, radi);
+        char a[4];
+        sprintf(a,"%d",id);
+        resetCol();
+        textOut(pos.x,pos.y,a);
+        txLine(pos.x, pos.y, speed.x*20 + pos.x, speed.y*20 + pos.y);
     }
 
     void radiReCalc() {
         //4*pi*r^3 = m
-        radi = pow((mass / (4*3.1415926)), 1.0 / 3.0) * RADI_MASS;
+        radi = pow((mass / (4*M_PI)), 1.0 / 3.0) * RADI_MASS;
     }
 };
 
