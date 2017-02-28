@@ -40,12 +40,13 @@ public:
 
 class base {
 public:
-	Vector2 pos, speed;
+	Vector2 pos, speed, acc;
 	Bounds bounds;
 
-	base(Vector2 startPos, Vector2 startSpeed, Bounds bnds) {
+	base(Vector2 startPos, Vector2 startSpeed,Vector2 acceleration, Bounds bnds) {
 		pos = startPos;
 		speed = startSpeed;
+		acc = acceleration;
 		bounds = bnds;
 	}
 
@@ -56,6 +57,7 @@ public:
 		if ((posCheck & 2) == 2) speed.x *= -1;
 		if ((posCheck & 4) == 4) speed.y *= -1;
 		pos += speed;
+        speed += acc;
 	}
 
 	void drow() {
@@ -67,15 +69,17 @@ class ball : public base {
 public:
 	float radi;
 	float mass;
+	float bounce;
 
 	bool isExist;
 	COLORREF color;
 
 	int id;
-	ball(Vector2 startPos, Vector2 startSpeed, float r = 0.0, COLORREF colr = RGB(255, 255, 255), int ID = 0, Bounds bnds = Bounds(0, 0, 0, 0)) : base(startPos, startSpeed, bnds) {
+	ball(Vector2 startPos, Vector2 startSpeed,Vector2 accel, float r = 0.0, float boun = 0.0, COLORREF colr = RGB(255, 255, 255), int ID = 0, Bounds bnds = Bounds(0, 0, 0, 0)) : base(startPos, startSpeed, accel, bnds) {
 		color = colr;
 		id = ID;
 		mass = r;
+		bounce = boun;
 		radiReCalc();
 	}
 
@@ -83,26 +87,24 @@ public:
 
 	void update() {
 		int posCheck = bounds.inBounds(pos + speed, radi);
-		if ((posCheck & 2) == 2) speed.x *= -1;
-		if ((posCheck & 4) == 4) speed.y *= -1;
+		if ((posCheck & 2) == 2) speed.x *= -0.96;//*(1 - ((acc.x/100.0)+0.000)); //потери энергии))
+		if ((posCheck & 4) == 4) speed.y *= -0.96;//-1*(1 - ((acc.y/100.0)+0.000)); //потери энергии))
 		pos += speed;
+        speed += acc;
 	}
 
 	int ballCheck(ball &bl)
 	{
 		Vector2 p12 = pos - bl.pos;
 		if (p12.sqrLength() < (radi + bl.radi)*(radi + bl.radi)) {
-			//Vector2 oldSpeed = speed, blOldSpeed = bl.speed;
-			//speed = oldSpeed * ((mass - bl.mass)/(mass+bl.mass)) + blOldSpeed * ((2*bl.mass)/(mass+bl.mass)); //новая скорость с импульсом
-			//bl.speed = oldSpeed * ((2*mass)/(mass+bl.mass)) + blOldSpeed * ((bl.mass - mass)/(mass+bl.mass));
+			Vector2 oldSpeed = speed, blOldSpeed = bl.speed;
+			speed = oldSpeed * ((mass - bl.mass)/(mass+bl.mass)) + blOldSpeed * ((2*bl.mass)/(mass+bl.mass)); //новая скорость с импульсом
+			bl.speed = oldSpeed * ((2*mass)/(mass+bl.mass)) + blOldSpeed * ((bl.mass - mass)/(mass+bl.mass));
 			/*
 				v1 = v1old * (m1 - m2)/(m1 + m2) + v2old * (2 * m2)/(m1 + m2)
 				v2 = v1old * (2 * m1)/(m1 + m2) + v2old * (m2 - m1)/(m1+m2)
 			*/
-			Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize(), v21 = bl.speed - speed;
-			float f = mass / (mass + bl.mass) * 0.5f;
-			speed += reflDest.negative() * f;
-			bl.speed += reflDest * f;
+			Vector2 p21 = bl.pos - pos, reflDest = p21.Normalize();
 			float reflDepth = radi + bl.radi - p21.Length();
 			pos += reflDest.negative() * reflDepth * 0.5; // расталкиваем шарики по их центрам.
 			bl.pos += reflDest * reflDepth * 0.5;
@@ -118,12 +120,13 @@ public:
 		sprintf(a, "%d", id);
 		resetCol();
 		textOut(pos.x, pos.y, a);
-		txLine(pos.x, pos.y, speed.x * 20 + pos.x, speed.y * 20 + pos.y);
+		//txLine(pos.x, pos.y, speed.x * 2 + pos.x, speed.y * 2 + pos.y);
 	}
 
 	void radiReCalc() {
 		//4*pi*r^3 = m
-		radi = pow((mass / (4 * M_PI)), 1.0 / 3.0) * RADI_MASS;
+		//pi*r^2 = m
+		radi = pow((mass / (M_PI)), 1.0 / 2.0) * RADI_MASS;
 	}
 };
 
