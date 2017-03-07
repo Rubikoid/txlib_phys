@@ -87,8 +87,8 @@ public:
 
 	void update() {
 		int posCheck = bounds.inBounds(pos + speed, radi);
-		if ((posCheck & 2) == 2) speed.x *= -0.96;//*(1 - ((acc.x/100.0)+0.000)); //потери энергии))
-		if ((posCheck & 4) == 4) speed.y *= -0.96;//-1*(1 - ((acc.y/100.0)+0.000)); //потери энергии))
+		if ((posCheck & 2) == 2) speed.x = (-1 * speed.x) + acc.x;//*(1 - ((acc.x/100.0)+0.000)); //потери энергии))
+		if ((posCheck & 4) == 4) speed.y = (-1 * speed.y) + pow(acc.y, 2); //-0.96;//-1*(1 - ((acc.y/100.0)+0.000)); //потери энергии))
 		pos += speed;
         speed += acc;
 	}
@@ -116,8 +116,8 @@ public:
 		txSetFillColour(color);
 		txSetColor(color, 1);
 		txCircle(pos.x, pos.y, radi);
-		char a[4];
-		sprintf(a, "%d", id);
+		char a[20];
+		sprintf(a, "%d;%f;%f", id, speed.x, speed.y);
 		resetCol();
 		textOut(pos.x, pos.y, a);
 		//txLine(pos.x, pos.y, speed.x * 2 + pos.x, speed.y * 2 + pos.y);
