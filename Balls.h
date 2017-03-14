@@ -87,8 +87,8 @@ public:
 
 	void update() {
 		int posCheck = bounds.inBounds(pos + speed, radi);
-		if ((posCheck & 2) == 2) speed.x = (-1 * speed.x) + acc.x;//*(1 - ((acc.x/100.0)+0.000)); //потери энергии))
-		if ((posCheck & 4) == 4) speed.y = (-1 * speed.y) + pow(acc.y, 2); //-0.96;//-1*(1 - ((acc.y/100.0)+0.000)); //потери энергии))
+		if ((posCheck & 2) == 2) speed.x = (-1 * speed.x) + acc.x*bounce;//*(1 - ((acc.x/100.0)+0.000)); //потери энергии))
+		if ((posCheck & 4) == 4) speed.y = (-1 * speed.y) + acc.y*bounce; //-0.96;//-1*(1 - ((acc.y/100.0)+0.000)); //потери энергии))
 		pos += speed;
         speed += acc;
 	}
@@ -117,11 +117,19 @@ public:
 		txSetColor(color, 1);
 		txCircle(pos.x, pos.y, radi);
 		char a[20];
-		sprintf(a, "%d;%f;%f", id, speed.x, speed.y);
+		//sprintf(a, "%d;%f;%f", id, speed.x, speed.y);
+		sprintf(a, "%d", id);
 		resetCol();
 		textOut(pos.x, pos.y, a);
 		//txLine(pos.x, pos.y, speed.x * 2 + pos.x, speed.y * 2 + pos.y);
 	}
+
+    void vecToPos(int posX, int posY) {
+        char a[20];
+        Vector2 vec = Vector2(posX-pos.x, posY-pos.y);
+        sprintf(a, "%f;%f", vec.x, vec.y);
+        textOut(posX, posY+20, a);
+    }
 
 	void radiReCalc() {
 		//4*pi*r^3 = m
