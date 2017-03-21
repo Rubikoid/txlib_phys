@@ -14,11 +14,11 @@ int main(int argc, char* argv[]) {
     vector<Vector2> dots = vector<Vector2>(0);
     init(WIDTH, HEIGHT);
     Bounds box = Bounds(40,HEIGHT-40,WIDTH-40,40);
-    ball next = ball(Vector2(400,200),     //start pos
-                     Vector2(2,0),     //start speed
-                     Vector2(0,0),     //acc
+    ball next = ball(Vector2(500,200),     //start pos
+                     Vector2(1,0),     //start speed
+                     Vector2(0,0.1),     //acc
                      5,          //mass/radi
-                     1,          //bounce
+                     2,          //bounce
                      RGB(255,0,255),  //color
                      1,             //num
                      box            //box
@@ -45,8 +45,9 @@ int main(int argc, char* argv[]) {
         for(uint i =0;i<items.size();i++) {
             dots.push_back(items[i].pos);
             items[i].drow();
-            items[i].vecToPos(MouseX(), MouseY());
-            items[i].update();
+            items[i].space = KEY(VK_SPACE);
+            //items[i].vecToPos(MouseX(), MouseY());
+            items[i].update(Vector2(1,-5));
         }
         for(uint i=0; i<items.size();i++) {
             for(uint j=0; j<items.size();j++) {

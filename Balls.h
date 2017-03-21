@@ -28,12 +28,28 @@ public:
 		внутри - 0
 		пересекает или больше по x - 2
 		пересекает или больше по y - 4
+		пересекает или меньше по x - 8
+		пересекает или меньше по y - 16
 	*/
 	int inBounds(Vector2 pos, float radi) {
 		int ret = 0;
-		if ((pos.x + radi) > rpPos.x || (pos.x - radi) < ldPos.x) { ret = ret | 2; }
-		if ((pos.y + radi) > ldPos.y || (pos.y - radi) < rpPos.y) { ret = ret | 4; }
+		if ((pos.x + radi) > rpPos.x) ret = ret | 2;
+		else if((pos.x - radi) < ldPos.x) ret = ret | 8;
+
+		if ((pos.y + radi) > ldPos.y) ret = ret | 4;
+		else if((pos.y - radi) < rpPos.y) ret = ret | 16;
 		return ret;
+	}
+
+	Vector2 deltaPos(Vector2 pos, float radi) {
+        int posCheck = inBounds(pos, radi);
+        Vector2 ret = Vector2(0,0);
+        if((posCheck & 2) == 2) ret.x += (rpPos.x - (pos.x + radi))-3;
+        else if((posCheck & 8) == 8) ret.x += (ldPos.x - (pos.x - radi))+3;
+
+        if((posCheck & 4) == 4) ret.y += (ldPos.y - (pos.y + radi))-3;
+        else if((posCheck & 16) == 16) ret.y += (rpPos.y - (pos.y - radi))+3;
+        return ret;
 	}
 	Bounds() {}
 };
@@ -72,6 +88,7 @@ public:
 	float bounce;
 
 	bool isExist;
+	bool space;
 	COLORREF color;
 
 	int id;
@@ -80,17 +97,25 @@ public:
 		id = ID;
 		mass = r;
 		bounce = boun;
+		space = false;
 		radiReCalc();
 	}
 
 	ball() : base() {}
 
-	void update() {
+	void update(Vector2 uSpeed = Vector2(0,0)) {
 		int posCheck = bounds.inBounds(pos + speed, radi);
-		if ((posCheck & 2) == 2) speed.x = (-1 * speed.x) + acc.x*bounce;//*(1 - ((acc.x/100.0)+0.000)); //потери энергии))
-		if ((posCheck & 4) == 4) speed.y = (-1 * speed.y) + acc.y*bounce; //-0.96;//-1*(1 - ((acc.y/100.0)+0.000)); //потери энергии))
-		pos += speed;
-        speed += acc;
+		if ((posCheck & 2) == 2 || (posCheck & 8) == 8) speed.x = (-1 * speed.x) + acc.x*bounce;//*(1 - ((acc.x/100.0)+0.000)); //потери энергии))
+		if ((posCheck & 4) == 4 || (posCheck & 16) == 16) speed.y = (-1 * speed.y) + acc.y*bounce; //-0.96;//-1*(1 - ((acc.y/100.0)+0.000)); //потери энергии))
+		pos += bounds.deltaPos(pos+speed, radi);
+		if(space){
+		     pos += uSpeed;
+		     speed.y = 0;
+		}
+		else {
+            pos += speed;
+            speed += acc;
+		}
 	}
 
 	int ballCheck(ball &bl)
@@ -118,7 +143,7 @@ public:
 		txCircle(pos.x, pos.y, radi);
 		char a[20];
 		//sprintf(a, "%d;%f;%f", id, speed.x, speed.y);
-		sprintf(a, "%d", id);
+		sprintf(a, "%d;%d", id, space);
 		resetCol();
 		textOut(pos.x, pos.y, a);
 		//txLine(pos.x, pos.y, speed.x * 2 + pos.x, speed.y * 2 + pos.y);
